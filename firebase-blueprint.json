@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "A pizza order placed by a user",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who placed the order"
+        },
+        "items": {
+          "type": "array",
+          "description": "Array of cart items"
+        },
+        "total": {
+          "type": "number",
+          "description": "Total price of the order"
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the order"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the order was placed"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Selected payment method"
+        },
+        "deliveryDetails": {
+          "type": "object",
+          "description": "Delivery address and contact info"
+        }
+      },
+      "required": ["userId", "items", "total", "status", "createdAt", "paymentMethod", "deliveryDetails"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "Stores user orders"
+    }
+  }
+}
