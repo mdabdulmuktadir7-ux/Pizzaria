@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShoppingCart, MapPin, Phone, Star, Plus, Minus, X, Info, ChevronRight, Clock, Map } from 'lucide-react';
+import { ShoppingCart, MapPin, Phone, Star, Plus, Minus, X, Info, ChevronRight, Clock, Map, Trash2, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // --- DATA ---
@@ -11,14 +11,19 @@ const MENU = {
     { id: 4, name: "Rustic BBQ Chicken", desc: "Smoked gouda, red onions, cilantro, house BBQ sauce.", price: 17.50, img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=600&q=80" }
   ],
   sides: [
-    { id: 5, name: "Garlic Knots", desc: "Oven-baked dough tossed in garlic butter and parmesan.", price: 6.99 },
-    { id: 6, name: "Caprese Salad", desc: "Fresh tomatoes, mozzarella, balsamic glaze.", price: 9.99 },
-    { id: 7, name: "Truffle Fries", desc: "Crispy shoestring fries tossed in truffle oil and parmesan.", price: 7.99 }
+    { id: 5, name: "Garlic Knots", desc: "Oven-baked dough tossed in garlic butter and parmesan.", price: 6.99, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Garlic_knots.jpg/600px-Garlic_knots.jpg" },
+    { id: 6, name: "Caprese Salad", desc: "Fresh tomatoes, mozzarella, balsamic glaze.", price: 9.99, img: "https://images.unsplash.com/photo-1608897013039-887f214b985c?auto=format&fit=crop&w=600&q=80" },
+    { id: 7, name: "Truffle Fries", desc: "Crispy shoestring fries tossed in truffle oil and parmesan.", price: 7.99, img: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=600&q=80" }
   ],
   beverages: [
-    { id: 8, name: "Craft Cola", desc: "Locally brewed cane sugar cola.", price: 3.99 },
-    { id: 9, name: "San Pellegrino", desc: "Sparkling water.", price: 2.99 },
-    { id: 10, name: "House Lemonade", desc: "Fresh squeezed lemons, subtle mint.", price: 3.50 }
+    { id: 8, name: "Craft Cola", desc: "Locally brewed cane sugar cola.", price: 3.99, img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80" },
+    { id: 9, name: "San Pellegrino", desc: "Sparkling water.", price: 2.99, img: "https://images.unsplash.com/photo-1559839914-11aaeebbc99a?auto=format&fit=crop&w=600&q=80" },
+    { id: 10, name: "House Lemonade", desc: "Fresh squeezed lemons, subtle mint.", price: 3.50, img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80" }
+  ],
+  sauces: [
+    { id: 11, name: "Hot Honey", desc: "Sweet and spicy chili-infused honey.", price: 1.50, img: "https://images.unsplash.com/photo-1587049352847-4d4b12405451?auto=format&fit=crop&w=600&q=80" },
+    { id: 12, name: "Garlic Butter", desc: "Roasted garlic and herb dip.", price: 2.00, img: "https://images.unsplash.com/photo-1600289031464-74d374b64991?auto=format&fit=crop&w=600&q=80" },
+    { id: 13, name: "Marinara Dip", desc: "Our signature San Marzano sauce.", price: 1.00, img: "https://images.unsplash.com/photo-1472476449509-8446ab56a312?auto=format&fit=crop&w=600&q=80" }
   ]
 };
 
@@ -30,18 +35,71 @@ const TESTIMONIALS = [
 
 // --- TYPES ---
 type CartItem = {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
   quantity: number;
   img?: string;
 };
 
-// --- COMPONENT ---
+// --- COMPONENTS ---
+function PizzaCard({ pizza, onAdd, delay }: { pizza: any; onAdd: (item: any) => void; delay: number }) {
+  const [size, setSize] = useState<8 | 10 | 12>(8);
+  const priceMultiplier = size === 8 ? 1 : size === 10 ? 1.3 : 1.69;
+  const currentPrice = (pizza.price * priceMultiplier).toFixed(2);
+
+  return (
+    <motion.div 
+      className="group flex flex-col sm:flex-row gap-6 bg-white p-6 border border-stone-200 shadow-sm"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+    >
+      <div className="w-full sm:w-32 h-40 sm:h-32 overflow-hidden shrink-0">
+        <img src={pizza.img} alt={pizza.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      </div>
+      <div className="flex flex-col flex-1 justify-between gap-4">
+        <div>
+          <div className="flex justify-between items-start mb-2 gap-4">
+            <h5 className="font-serif text-lg text-stone-900 font-medium">{pizza.name}</h5>
+            <span className="text-sm font-bold text-red-700 underline shrink-0">${currentPrice}</span>
+          </div>
+          <p className="text-[11px] text-stone-600 leading-tight italic">{pizza.desc}</p>
+        </div>
+        
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase tracking-widest text-stone-500 font-bold">Size:</span>
+            {[8, 10, 12].map(s => (
+              <button 
+                key={s}
+                onClick={() => setSize(s as any)}
+                className={`px-3 py-1 text-[10px] font-bold rounded-none border transition-colors ${size === s ? 'bg-stone-900 text-white border-stone-900' : 'bg-transparent text-stone-500 border-stone-300 hover:border-stone-500 hover:text-stone-900'}`}
+              >
+                {s}"
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={() => onAdd({ ...pizza, id: `${pizza.id}-${size}`, name: `${pizza.name} (${size}")`, price: parseFloat(currentPrice) })}
+            className="flex items-center justify-center gap-2 w-full sm:w-auto self-start border border-stone-300 hover:border-stone-500 hover:bg-stone-100 text-stone-700 px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-bold transition-all mt-1"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// --- MAIN APP ---
 export default function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [view, setView] = useState<'home' | 'checkout' | 'success'>('home');
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash' | 'nagad' | 'rocket'>('cod');
 
   // SEO & Scroll setup
   useEffect(() => {
@@ -55,7 +113,7 @@ export default function App() {
   }, []);
 
   // Cart Handlers
-  const addToCart = (item: { id: number, name: string, price: number, img?: string }) => {
+  const addToCart = (item: { id: number | string, name: string, price: number, img?: string }) => {
     setCart(prev => {
       const existing = prev.find(p => p.id === item.id);
       if (existing) {
@@ -67,7 +125,7 @@ export default function App() {
     setIsCartOpen(true);
   };
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (id: number | string, delta: number) => {
     setCart(prev => prev.map(p => {
       if (p.id === id) {
         const newQty = p.quantity + delta;
@@ -75,6 +133,10 @@ export default function App() {
       }
       return p;
     }).filter(p => p.quantity > 0));
+  };
+
+  const removeFromCart = (id: number | string) => {
+    setCart(prev => prev.filter(p => p.id !== id));
   };
 
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -101,25 +163,38 @@ export default function App() {
           </div>
           
           <div className="flex items-center gap-4 text-xs uppercase tracking-widest font-medium">
-            <button 
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2 text-stone-600 hover:text-red-600 transition-colors"
-              aria-label="View Cart"
-            >
-              <ShoppingCart size={20} />
-              {cartItemsCount > 0 && (
-                <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-700 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                  {cartItemsCount}
-                </span>
-              )}
-            </button>
-            <button onClick={scrollToMenu} className="hidden md:inline-flex bg-red-700 hover:bg-red-800 text-white px-6 py-3 rounded-sm text-xs uppercase tracking-[0.2em] font-bold shadow-lg shadow-red-900/20 transition-colors items-center gap-2">
-              Order Online
-            </button>
+            {view === 'home' ? (
+              <>
+                <button 
+                  onClick={() => setIsCartOpen(true)}
+                  className="relative p-2 text-stone-600 hover:text-red-600 transition-colors"
+                  aria-label="View Cart"
+                >
+                  <ShoppingCart size={20} />
+                  {cartItemsCount > 0 && (
+                    <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-700 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </button>
+                <button onClick={scrollToMenu} className="hidden md:inline-flex bg-red-700 hover:bg-red-800 text-white px-6 py-3 rounded-sm text-xs uppercase tracking-[0.2em] font-bold shadow-lg shadow-red-900/20 transition-colors items-center gap-2">
+                  Order Online
+                </button>
+              </>
+            ) : (
+              <button 
+                onClick={() => setView('home')} 
+                className="flex items-center gap-2 text-stone-600 hover:text-red-700 transition-colors"
+              >
+                <ArrowLeft size={16} /> Back to Menu
+              </button>
+            )}
           </div>
         </div>
       </header>
 
+      {view === 'home' && (
+      <>
       {/* HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center pt-24 pb-12 bg-[#F5F2E9] border-b border-stone-200">
         <div className="absolute inset-0 z-0">
@@ -178,56 +253,33 @@ export default function App() {
         <div className="mb-20">
           <div className="flex items-center gap-4 mb-8">
             <h4 className="text-xs uppercase tracking-[0.3em] text-red-700 font-bold">Signature Pizzas</h4>
-            <span className="text-stone-500 text-[10px] uppercase tracking-widest hidden sm:inline">(12" Artisan Pies)</span>
+            <span className="text-stone-500 text-[10px] uppercase tracking-widest hidden sm:inline">(Available in 8", 10", 12")</span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
             {MENU.pizzas.map((pizza, i) => (
-              <motion.div 
-                key={pizza.id} 
-                className="group flex flex-col sm:flex-row gap-6 bg-white p-6 border border-stone-200 hover:border-stone-300 transition-colors shadow-sm"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <div className="w-full sm:w-32 h-40 sm:h-32 overflow-hidden shrink-0">
-                  <img src={pizza.img} alt={pizza.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" />
-                </div>
-                <div className="flex flex-col flex-1 justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-2 gap-4">
-                      <h5 className="font-serif text-lg text-stone-900 font-medium">{pizza.name}</h5>
-                      <span className="text-sm font-bold text-red-700 underline shrink-0">${pizza.price}</span>
-                    </div>
-                    <p className="text-[11px] text-stone-600 leading-tight italic mb-4">{pizza.desc}</p>
-                  </div>
-                  <button 
-                    onClick={() => addToCart(pizza)}
-                    className="flex items-center justify-center gap-2 w-full sm:w-auto self-start border border-stone-300 hover:border-stone-500 hover:bg-stone-100 text-stone-700 px-6 py-2 text-[10px] uppercase tracking-[0.2em] font-bold transition-all"
-                  >
-                    Add
-                  </button>
-                </div>
-              </motion.div>
+              <PizzaCard key={pizza.id} pizza={pizza} onAdd={addToCart} delay={i * 0.1} />
             ))}
           </div>
         </div>
 
-        {/* Two Column Layout for Sides & Beverages */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+        {/* Three Column Layout for Sides, Beverages, Sauces */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Sides */}
           <div className="bg-white p-8 border border-stone-200 shadow-sm">
             <h4 className="text-xs uppercase tracking-[0.3em] text-red-700 font-bold mb-8">Sides to Share</h4>
             <div className="space-y-0">
               {MENU.sides.map((side, i) => (
-                <div key={side.id} className="flex justify-between items-start gap-4 py-4 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors pl-2 pr-4 -mx-2 rounded-sm">
+                <div key={side.id} className="flex items-start gap-4 py-4 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors px-2 -mx-2 rounded-sm group">
+                  <div className="w-16 h-16 shrink-0 overflow-hidden bg-stone-100">
+                    <img src={side.img} alt={side.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  </div>
                   <div className="flex-1">
-                    <h5 className="font-serif text-lg text-stone-900 mb-1">{side.name}</h5>
+                    <h5 className="font-serif text-lg text-stone-900 mb-1 leading-tight">{side.name}</h5>
                     <p className="text-[11px] text-stone-600 leading-tight italic">{side.desc}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-3 shrink-0">
-                    <span className="text-sm font-bold text-stone-700">${side.price}</span>
+                  <div className="flex flex-col items-end gap-3 shrink-0 mt-1">
+                    <span className="text-sm font-bold text-stone-700">${side.price.toFixed(2)}</span>
                     <button 
                       onClick={() => addToCart(side)}
                       className="text-[10px] uppercase tracking-widest border border-stone-300 px-3 py-1 hover:bg-stone-100 transition-colors text-stone-600 hover:text-stone-900"
@@ -246,17 +298,48 @@ export default function App() {
             <h4 className="text-xs uppercase tracking-[0.3em] text-red-700 font-bold mb-8">Beverages</h4>
             <div className="space-y-0">
               {MENU.beverages.map((bev, i) => (
-                <div key={bev.id} className="flex justify-between items-start gap-4 py-4 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors pl-2 pr-4 -mx-2 rounded-sm">
+                <div key={bev.id} className="flex items-start gap-4 py-4 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors px-2 -mx-2 rounded-sm group">
+                  <div className="w-16 h-16 shrink-0 overflow-hidden bg-stone-100">
+                    <img src={bev.img} alt={bev.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  </div>
                   <div className="flex-1">
-                    <h5 className="font-serif text-lg text-stone-900 mb-1">{bev.name}</h5>
+                    <h5 className="font-serif text-lg text-stone-900 mb-1 leading-tight">{bev.name}</h5>
                     <p className="text-[11px] text-stone-600 leading-tight italic">{bev.desc}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-3 shrink-0">
-                    <span className="text-sm font-bold text-stone-700">${bev.price}</span>
+                  <div className="flex flex-col items-end gap-3 shrink-0 mt-1">
+                    <span className="text-sm font-bold text-stone-700">${bev.price.toFixed(2)}</span>
                     <button 
                       onClick={() => addToCart(bev)}
                       className="text-[10px] uppercase tracking-widest border border-stone-300 px-3 py-1 hover:bg-stone-100 transition-colors text-stone-600 hover:text-stone-900"
                       aria-label={`Add ${bev.name} to cart`}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sauces */}
+          <div className="bg-white p-8 border border-stone-200 shadow-sm">
+            <h4 className="text-xs uppercase tracking-[0.3em] text-red-700 font-bold mb-8">Dips & Sauces</h4>
+            <div className="space-y-0">
+              {MENU.sauces.map((sauce, i) => (
+                <div key={sauce.id} className="flex items-start gap-4 py-4 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors px-2 -mx-2 rounded-sm group">
+                  <div className="w-16 h-16 shrink-0 overflow-hidden bg-stone-100">
+                    <img src={sauce.img} alt={sauce.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="font-serif text-lg text-stone-900 mb-1 leading-tight">{sauce.name}</h5>
+                    <p className="text-[11px] text-stone-600 leading-tight italic">{sauce.desc}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-3 shrink-0 mt-1">
+                    <span className="text-sm font-bold text-stone-700">${sauce.price.toFixed(2)}</span>
+                    <button 
+                      onClick={() => addToCart(sauce)}
+                      className="text-[10px] uppercase tracking-widest border border-stone-300 px-3 py-1 hover:bg-stone-100 transition-colors text-stone-600 hover:text-stone-900"
+                      aria-label={`Add ${sauce.name} to cart`}
                     >
                       Add
                     </button>
@@ -395,6 +478,159 @@ export default function App() {
           )}
         </button>
       </div>
+      </>
+      )}
+
+      {view === 'checkout' && (
+        <div className="pt-24 pb-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+            <div className="mb-8">
+              <button onClick={() => setView('home')} className="flex items-center gap-2 text-stone-500 hover:text-stone-900 text-sm font-medium uppercase tracking-widest transition-colors">
+                <ArrowLeft size={16} /> Edit Order
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                <div className="lg:col-span-7 space-y-8">
+                  <div>
+                    <h2 className="font-serif text-3xl font-bold text-stone-900 mb-6">Delivery Details</h2>
+                    <div className="bg-white p-6 md:p-8 border border-stone-200 shadow-sm space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] uppercase tracking-widest font-bold text-stone-500">First Name</label>
+                          <input type="text" placeholder="John" className="w-full border-b border-stone-300 py-2 bg-transparent focus:outline-none focus:border-red-700 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] uppercase tracking-widest font-bold text-stone-500">Last Name</label>
+                          <input type="text" placeholder="Doe" className="w-full border-b border-stone-300 py-2 bg-transparent focus:outline-none focus:border-red-700 transition-colors" />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <label className="text-[10px] uppercase tracking-widest font-bold text-stone-500">Email Address</label>
+                          <input type="email" placeholder="john@example.com" className="w-full border-b border-stone-300 py-2 bg-transparent focus:outline-none focus:border-red-700 transition-colors" />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <label className="text-[10px] uppercase tracking-widest font-bold text-stone-500">Delivery Address</label>
+                          <div className="relative">
+                            <MapPin size={18} className="absolute left-0 top-2.5 text-stone-400" />
+                            <input type="text" placeholder="123 Salimullah Road..." className="w-full border-b border-stone-300 py-2 pl-8 bg-transparent focus:outline-none focus:border-red-700 transition-colors" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="font-serif text-3xl font-bold text-stone-900 mb-6">Payment</h2>
+                    <div className="bg-white p-6 md:p-8 border border-stone-200 shadow-sm space-y-6">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { id: 'cod', name: 'Cash on Delivery' },
+                          { id: 'bkash', name: 'bKash' },
+                          { id: 'nagad', name: 'Nagad' },
+                          { id: 'rocket', name: 'Rocket' }
+                        ].map(method => (
+                          <button
+                            key={method.id}
+                            onClick={() => setPaymentMethod(method.id as any)}
+                            className={`p-4 border text-[10px] uppercase tracking-widest font-bold transition-all ${paymentMethod === method.id ? 'border-red-700 bg-red-50 text-red-700' : 'border-stone-200 text-stone-500 hover:border-stone-400'}`}
+                          >
+                            {method.name}
+                          </button>
+                        ))}
+                      </div>
+
+                      {paymentMethod !== 'cod' && (
+                        <div className="space-y-6 pt-4 border-t border-stone-100">
+                          <p className="text-sm text-stone-600 bg-stone-50 p-4 border border-stone-200">
+                            Please send the total amount to our {paymentMethod === 'bkash' ? 'bKash' : paymentMethod === 'nagad' ? 'Nagad' : 'Rocket'} merchant number: <br/>
+                            <strong className="font-mono text-red-700 text-lg block mt-2">019 0000 0000</strong>
+                          </p>
+                          <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest font-bold text-stone-500">Your {paymentMethod === 'bkash' ? 'bKash' : paymentMethod === 'nagad' ? 'Nagad' : 'Rocket'} Number</label>
+                            <input type="text" placeholder="01XXX-XXXXXX" className="w-full border-b border-stone-300 py-2 bg-transparent focus:outline-none focus:border-red-700 transition-colors font-mono" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-widest font-bold text-stone-500">Transaction ID</label>
+                            <input type="text" placeholder="e.g. 7X9B3PQ" className="w-full border-b border-stone-300 py-2 bg-transparent focus:outline-none focus:border-red-700 transition-colors font-mono uppercase" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-5">
+                   <div className="sticky top-32 bg-stone-900 text-white p-8 shadow-2xl">
+                      <h3 className="font-serif text-2xl font-bold mb-6">Order Summary</h3>
+                      <div className="space-y-4 mb-6">
+                        {cart.map(item => (
+                          <div key={item.id} className="flex justify-between items-start text-sm">
+                            <div className="flex gap-3">
+                              <span className="font-bold text-stone-400">{item.quantity}x</span>
+                              <span className="font-serif text-stone-200">{item.name}</span>
+                            </div>
+                            <span className="text-stone-300">${(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="border-t border-stone-700 pt-6 space-y-3 mb-6">
+                        <div className="flex justify-between text-stone-400 text-xs uppercase tracking-widest">
+                          <span>Subtotal</span>
+                          <span>${cartTotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-stone-400 text-xs uppercase tracking-widest">
+                          <span>Taxes & Fees</span>
+                          <span>${(cartTotal * 0.1).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-stone-300 text-xs uppercase tracking-widest">
+                          <span>Delivery</span>
+                          <span className="text-red-400">FREE</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xl font-bold pt-4 border-t border-stone-700">
+                          <span>Total</span>
+                          <span className="text-white">${(cartTotal * 1.1).toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => {
+                          setCart([]);
+                          setView('success');
+                          window.scrollTo(0,0);
+                        }}
+                        className="w-full bg-red-700 hover:bg-red-600 text-white uppercase tracking-[0.2em] py-4 font-bold text-xs transition-colors shadow-lg"
+                      >
+                        Place Order • ${(cartTotal * 1.1).toFixed(2)}
+                      </button>
+                   </div>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {view === 'success' && (
+        <div className="min-h-[80vh] flex items-center justify-center pt-24 pb-12 max-w-lg mx-auto px-4 text-center">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white p-12 border border-stone-200 shadow-sm flex flex-col items-center"
+          >
+            <div className="w-16 h-16 bg-red-100 text-red-700 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle2 size={32} />
+            </div>
+            <h2 className="font-serif text-3xl font-bold text-stone-900 mb-4">Order Received!</h2>
+            <p className="text-sm text-stone-600 leading-relaxed mb-8">
+              Your pizza is entering the wood-fired oven. It should arrive at your door in approximately <strong>25 minutes</strong>.
+            </p>
+            <button 
+              onClick={() => setView('home')}
+              className="bg-stone-900 hover:bg-stone-800 text-white uppercase tracking-widest px-8 py-3 text-[10px] font-bold transition-colors"
+            >
+              Return to Menu
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       {/* SECURE CART DRAWER / SLIDEOVER */}
       <AnimatePresence>
@@ -476,6 +712,13 @@ export default function App() {
                                 <Plus size={14} />
                               </button>
                             </div>
+                            <button 
+                               onClick={() => removeFromCart(item.id)}
+                               className="ml-auto text-stone-400 hover:text-red-700 transition-colors p-1"
+                               aria-label="Remove item"
+                            >
+                               <Trash2 size={16} />
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -502,7 +745,14 @@ export default function App() {
                   </div>
                   
                   <div className="space-y-3">
-                    <button className="w-full bg-red-700 hover:bg-red-800 text-white uppercase tracking-[0.2em] py-4 rounded-none font-bold text-[10px] transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-sm">
+                    <button 
+                      onClick={() => {
+                        setIsCartOpen(false);
+                        setView('checkout');
+                        window.scrollTo(0, 0);
+                      }}
+                      className="w-full bg-red-700 hover:bg-red-800 text-white uppercase tracking-[0.2em] py-4 rounded-none font-bold text-[10px] transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+                    >
                       Secure Checkout
                     </button>
                     <p className="text-[10px] uppercase tracking-widest text-center text-stone-500 flex items-center justify-center gap-1 font-medium mt-4">
